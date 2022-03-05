@@ -1,6 +1,7 @@
 import React from 'react'
 import './ItemListContainer.css'
 import ItemList from '../../components/ItemList/ItemList';
+import ItemDetailContainer from '../ItemDetailContainer/ItemDetailContainer';
 
 const ItemListContainer = () => {
 

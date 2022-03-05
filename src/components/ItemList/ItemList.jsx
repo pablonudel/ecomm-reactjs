@@ -10,13 +10,10 @@ const ItemList = () => {
     useEffect(() => {
         getFetch.then(
         (resp) => setProductos(resp),
-        (err) => console.log(err)
         )
         .catch(err => console.log(err))
         .finally(()=>setLoading(false))
     }, [])
-
-    // console.log(productos)
 
     return (
     <>
