@@ -1,30 +1,51 @@
 import React from 'react'
 import {useState} from 'react'
+import InputGroup from 'react-bootstrap/esm/InputGroup'
+import FormControl from 'react-bootstrap/esm/FormControl'
+import Button from 'react-bootstrap/esm/Button'
+import BtnAddToCart from '../BtnAddToCart/BtnAddToCart'
+import BtnGoToShop from '../BtnGoToShop/BtnGoToShop'
+import BtnGoToCart from '../BtnGoToCart/BtnGoToCart'
 
-const ItemCount = ({stock, initial, onAdd}) => {
+const ItemCount = ({initial, onAdd, producto}) => {
 
   const [itemCount, setContador] = useState(initial)
+  const [inputType, setInputType] = useState('actionAdd')
 
   const handleCount = (op) => {
-      if(op === 'add'){
-        setContador(itemCount+1)
-      }
-      if(op === 'sub'){
-        setContador(itemCount-1)
-      }
+    if(op === 'add'){
+      setContador(itemCount+1)
+    }
+    if(op === 'sub'){
+      setContador(itemCount-1)
+    }
   }
-  
+
+  const handleAction = () =>{
+    setInputType('actionGoTo')
+    onAdd(itemCount)
+  }
+
   return (
     <div>
-        <div className="input-group mb-3">
-            <button className="btn btn-success" onClick={()=> handleCount('sub')} disabled={stock == 0 || itemCount == initial}>-</button>
-            <input type="text" className='form-control text-center' disabled readOnly value={ itemCount }></input>
-            <button className="btn btn-success" onClick={()=> handleCount('add')} disabled={stock == 0 || itemCount == stock}>+</button>
+      {
+        inputType === 'actionAdd'
+        ? <div>
+            <InputGroup className='mb-3'>
+              <Button variant="dark" onClick={()=> handleCount('sub')} disabled={itemCount === initial}>-</Button>
+              <FormControl className='text-center' placeholder={ itemCount }/>
+              <Button variant="dark" onClick={()=> handleCount('add')} disabled={itemCount === producto.stock}>+</Button>
+            </InputGroup>
+            <div className='d-grid'>
+              <BtnAddToCart handleAction={handleAction}/>
+            </div>
         </div>
-        <div className="d-flex justify-content-between">
-            <button className='btn btn-outline-success'><i class="bi bi-eye"></i></button>
-            <button className='btn btn-outline-success' disabled={stock == 0} onClick={() => onAdd(itemCount)}>Agregar al carrito</button>
+        : <div className='d-grid gap-3 text-center'>
+            <BtnGoToShop/>
+            <BtnGoToCart/>
         </div>
+      }
+      
     </div>
   )
 }

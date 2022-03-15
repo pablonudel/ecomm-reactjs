@@ -1,24 +1,33 @@
 import React from 'react'
-import ItemCount from '../ItemCount/ItemCount'
+import {LinkContainer} from 'react-router-bootstrap'
+import Col from 'react-bootstrap/esm/Col'
+import Card from 'react-bootstrap/esm/Card'
+import Button from 'react-bootstrap/esm/Button'
+import Badge from 'react-bootstrap/esm/Badge'
 
-const item = ({nombre, descripcion, imagen, precio, stock}) => {
-  const mostrarCantidad = (cant) => {
-    console.log('Cantidad agregada: ' + cant);
-  }
+const Item = ({producto}) => {
 
-  return (
-    <div className="col">
-        <div className="card">
-            <img src={imagen} className='card-img-top' alt="" />
-            <div className="card-body">
-            <h6 className='card-title'>{nombre}</h6>
-            <p className='card-text'>{descripcion}</p>
-            <h5 className='text-center'>${precio}</h5>
-            <ItemCount stock={stock} initial={1} onAdd={mostrarCantidad}/>
-            </div>
-        </div>
-    </div>
+    return (
+    <Col>
+        <Card className='h-100 shadow ItemCard rounded-0'>
+            <Card.Img variant="top" src={producto.imagen} alt={producto.nombre} />
+            <Card.Body>
+                <LinkContainer to={`/category/${producto.categoria}`}>
+                    <Card.Link><Badge pill bg='dark'>{producto.categoria}</Badge></Card.Link>
+                </LinkContainer>
+                <Card.Title className='mt-3 text-truncate'>{producto.nombre}</Card.Title>
+                <div className="d-flex justify-content-between">
+                </div>
+                <div className="d-flex justify-content-between align-items-baseline">
+                    <h5 className='text-center'>${producto.precio}.-</h5>
+                    <LinkContainer to={`/item/${producto.id}`}>
+                        <Button variant="dark"><i className="bi bi-eye"></i></Button>
+                    </LinkContainer>
+                </div>
+            </Card.Body>
+        </Card>
+    </Col>
   )
 }
 
-export default item
+export default Item

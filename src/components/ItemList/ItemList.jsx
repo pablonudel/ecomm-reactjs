@@ -1,33 +1,16 @@
-import React, { useEffect, useState }  from 'react'
-import { getFetch } from '../../mocks/getFetch'
+import React from 'react'
 import Item from '../Item/Item'
+import Row from 'react-bootstrap/esm/Row'
 
-const ItemList = () => {
 
-    const [productos, setProductos] = useState([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        getFetch.then(
-        (resp) => setProductos(resp),
-        )
-        .catch(err => console.log(err))
-        .finally(()=>setLoading(false))
-    }, [])
+const ItemList = ({productos}) => {
 
     return (
-    <>
-        {
-            loading ? <div className='d-flex justify-content-center'>
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
-            </div>
-            : <div className="row row-cols-4">
-                {productos.map((prod) => <Item key={prod.id} nombre={prod.nombre} descripcion={prod.descripcion} imagen={prod.imagen} precio={prod.precio} stock={prod.stock}/>)}
-            </div>     
-        }
-    </>
+        <Row xs={1} md={2} lg={3} xl={4} className='g-3'>
+            {
+                productos.map((producto) => <Item key={producto.id} producto={producto}/>)
+            }
+        </Row>
     )
 }
 

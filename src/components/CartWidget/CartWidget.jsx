@@ -2,9 +2,7 @@ import React from 'react'
 
 const CartWidget = () => {
   return (
-    <div>
-        <a className='bg-light p-2 rounded-circle text-dark' href='#'><i class="bi bi-cart2"></i></a>
-    </div>
+    <i className="bi bi-cart2 rounded-circle bg-light text-dark p-2"></i>
   )
 }
 
