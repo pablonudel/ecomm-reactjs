@@ -13,7 +13,6 @@ const ItemDetailContainer = () => {
 
   useEffect(() => {
     getFetch
-    .then((respuesta) =>{ return respuesta})
     .then((resp) => setProducto(resp.find(r => r.id === itemId)))
     .catch(err => console.log(err))
     .finally(()=>setLoading(false))

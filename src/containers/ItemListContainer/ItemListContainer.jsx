@@ -14,13 +14,11 @@ const ItemListContainer = () => {
     useEffect(() => {
         if(catId){
             getFetch
-            .then((respuesta) =>{ return respuesta})
             .then((resp) => setProductos(resp.filter(r => r.categoria === catId)))
             .catch(err => console.log(err))
             .finally(() => setLoading(false))
         }else{
             getFetch
-            .then((respuesta) =>{ return respuesta})
             .then((resp) => setProductos(resp))
             .catch(err => console.log(err))
             .finally(() => setLoading(false))
