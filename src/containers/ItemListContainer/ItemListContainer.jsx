@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getFetch } from '../../mocks/getFetch'
 import Container from 'react-bootstrap/esm/Container'
 import Spinner from 'react-bootstrap/esm/Spinner'
 import ItemList from '../../components/ItemList/ItemList'
+import {collection, getDocs, getFirestore, query, where} from 'firebase/firestore'
 
 const ItemListContainer = () => {
 
@@ -12,26 +12,23 @@ const ItemListContainer = () => {
     const { catId } = useParams()
     
     useEffect(() => {
+        const db = getFirestore()    
+        const queryCollection = collection(db, 'productos')
         if(catId){
-            getFetch
-            .then((resp) => setProductos(resp.filter(r => r.categoria === catId)))
+            const queryFilter = query(queryCollection, where('categoria', '==', catId))
+            getDocs(queryFilter)
+            //.then(resp => console.log(resp))
+            .then(resp => setProductos( resp.docs.map(item => ({id: item.id, ...item.data()})) ))
             .catch(err => console.log(err))
             .finally(() => setLoading(false))
         }else{
-            getFetch
-            .then((resp) => setProductos(resp))
-            .catch(err => console.log(err))
-            .finally(() => setLoading(false))
+            getDocs(queryCollection) // le decimos que lo traiga
+            //.then(resp => console.log(resp))
+            .then(resp => setProductos( resp.docs.map(item => ({id: item.id, ...item.data()})) ))
+            .catch(err => console.log(err)) 
+            .finally(() => setLoading(false)) 
         }
     }, [catId])
-
-    // useEffect(() => {
-    //     let url = 'assets/data.json'
-    //     fetch(url)
-    //     .then((resp) => resp.json())
-    //     .then((resp) => console.log(resp))
-    // }, [])
-    
     
     return (
         <>

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getFetch } from '../../mocks/getFetch'
 import Container from 'react-bootstrap/esm/Container'
 import Spinner from 'react-bootstrap/esm/Spinner'
 import ItemDetail from '../../components/ItemDetail/ItemDetail'
+import { doc, getDoc, getFirestore } from 'firebase/firestore'
 
 const ItemDetailContainer = () => {
 
@@ -12,18 +12,14 @@ const ItemDetailContainer = () => {
   const { itemId } = useParams()
 
   useEffect(() => {
-    getFetch
-    .then((resp) => setProducto(resp.find(r => r.id === itemId)))
+    const db = getFirestore()
+    const queryProducto = doc(db, 'productos', itemId)
+    getDoc(queryProducto)
+    .then(resp => setProducto( {id: resp.id, ...resp.data()} ))
     .catch(err => console.log(err))
     .finally(()=>setLoading(false))
   }, [itemId])
-
-  // useEffect(() => {
-  //     let url = 'assets/data.json'
-  //     fetch(url)
-  //     .then((resp) => resp.json())
-  //     .then((resp) => console.log(resp))
-  // }, [])
+  
 
   return (
     <Container fluid>
