@@ -1,0 +1,11 @@
+.cartItem{
+    background: rgb(232,232,232);
+    background: linear-gradient(180deg, rgba(232,232,232,1) 90%, rgba(248,249,250,1) 100%);
+}
+
+@media (min-width: 576px) {
+    .cartItem{
+        background: rgb(232,232,232);
+        background: linear-gradient(90deg, rgba(232,232,232,1) 30%, rgba(248,249,250,1) 100%);
+    }
+ }

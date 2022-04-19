@@ -1,17 +1,14 @@
-import React from 'react'
-import Item from '../Item/Item'
-import Row from 'react-bootstrap/esm/Row'
+import Row from "react-bootstrap/esm/Row";
+import Item from "../Item/Item";
 
+const ItemList = ({ products }) => {
+  return (
+    <Row xs={1} md={2} lg={3} xl={4} className="g-3">
+      {products.map((product) => (
+        <Item key={product.id} product={product} />
+      ))}
+    </Row>
+  );
+};
 
-const ItemList = ({productos}) => {
-
-    return (
-        <Row xs={1} md={2} lg={3} xl={4} className='g-3'>
-            {
-                productos.map((producto) => <Item key={producto.id} producto={producto}/>)
-            }
-        </Row>
-    )
-}
-
-export default ItemList
+export default ItemList;

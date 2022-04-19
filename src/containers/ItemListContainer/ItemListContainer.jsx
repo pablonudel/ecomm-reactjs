@@ -1,47 +1,41 @@
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import Container from 'react-bootstrap/esm/Container'
-import Spinner from 'react-bootstrap/esm/Spinner'
-import ItemList from '../../components/ItemList/ItemList'
-import {collection, getDocs, getFirestore, query, where} from 'firebase/firestore'
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { collection, getFirestore, query, where } from "firebase/firestore";
+import Container from "react-bootstrap/esm/Container";
+import Spinner from "react-bootstrap/esm/Spinner";
+import ItemList from "../../components/ItemList/ItemList";
+import { getFetch } from "../../firebase/getFetch";
 
 const ItemListContainer = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { catId } = useParams();
 
-    const [productos, setProductos] = useState([])
-    const [loading, setLoading] = useState(true)
-    const { catId } = useParams()
-    
-    useEffect(() => {
-        const db = getFirestore()    
-        const queryCollection = collection(db, 'productos')
-        if(catId){
-            const queryFilter = query(queryCollection, where('categoria', '==', catId))
-            getDocs(queryFilter)
-            //.then(resp => console.log(resp))
-            .then(resp => setProductos( resp.docs.map(item => ({id: item.id, ...item.data()})) ))
-            .catch(err => console.log(err))
-            .finally(() => setLoading(false))
-        }else{
-            getDocs(queryCollection) // le decimos que lo traiga
-            //.then(resp => console.log(resp))
-            .then(resp => setProductos( resp.docs.map(item => ({id: item.id, ...item.data()})) ))
-            .catch(err => console.log(err)) 
-            .finally(() => setLoading(false)) 
-        }
-    }, [catId])
-    
-    return (
-        <>
-            {
-                loading ? <div className='d-flex justify-content-center vh-100'>
-                    <Spinner animation="border" variant="light" className='align-self-center'/>
-                </div>
-                : <Container className='mt-5 mb-5'>
-                    <ItemList productos={productos}/>
-                </Container>
-            }
-        </>
-    )
-}
+  let sortByDate = (arr) => arr.sort((a, b) => b.created_at - a.created_at);
 
-export default ItemListContainer
+  useEffect(() => {
+    const queryCollection = collection(getFirestore(), "products");
+    const dbQuery = catId ? query(queryCollection, where("category", "==", catId)) : queryCollection;
+    const setter = (resp) => setProducts(resp.docs.map((item) => ({ id: item.id, ...item.data() })));
+    const finalFn = () => setLoading(false);
+
+    getFetch("collection", dbQuery, setter, null, finalFn);
+  }, [catId]);
+
+  return (
+    <>
+      {loading ? (
+        <div className="d-flex justify-content-center">
+          <Spinner animation="border" variant="dark" className="align-self-center"/>
+        </div>
+      ) : (
+        <Container className="mt-5 mb-5">
+          <h1 className="mb-5 pt-3">{catId ? catId : "Nuestros productos"}</h1>
+          <ItemList products={sortByDate(products)} />
+        </Container>
+      )}
+    </>
+  );
+};
+
+export default ItemListContainer;

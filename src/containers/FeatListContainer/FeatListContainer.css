@@ -1,0 +1,21 @@
+.featCarousel{
+    background: rgb(232,232,232);
+    background: linear-gradient(115deg, rgba(232,232,232,1) 60%, rgba(145,236,255,1) 81%, rgba(243,255,185,1) 100%);        
+}
+
+.spinnerWrapper, .featCarousel img, .carousel{
+    height: 550px;
+}
+
+@media (max-width: 1200px) {
+    .featCarousel{
+        background: rgb(232,232,232);       
+    }
+
+    .featCarousel img{
+        height: 550px;
+    }
+    .carousel, .featCarousel{
+        height: 800px;
+    }
+}

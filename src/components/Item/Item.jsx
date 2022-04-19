@@ -1,33 +1,34 @@
-import React from 'react'
-import {LinkContainer} from 'react-router-bootstrap'
-import Col from 'react-bootstrap/esm/Col'
-import Card from 'react-bootstrap/esm/Card'
-import Button from 'react-bootstrap/esm/Button'
-import Badge from 'react-bootstrap/esm/Badge'
+import { LinkContainer } from "react-router-bootstrap";
+import Col from "react-bootstrap/esm/Col";
+import Card from "react-bootstrap/esm/Card";
+import Badge from "react-bootstrap/esm/Badge";
+import LinkBtn from "../LinkBtn/LinkBtn";
+import { badgeColor } from "./badgeColor.js";
+import "./Item.css";
 
-const Item = ({producto}) => {
-
-    return (
+const Item = ({ product }) => {
+  return (
     <Col>
-        <Card className='h-100 shadow ItemCard rounded-0'>
-            <Card.Img variant="top" src={producto.imagen} alt={producto.nombre} />
-            <Card.Body>
-                <LinkContainer to={`/category/${producto.categoria}`}>
-                    <Card.Link><Badge pill bg='dark'>{producto.categoria}</Badge></Card.Link>
-                </LinkContainer>
-                <Card.Title className='mt-3 text-truncate'>{producto.nombre}</Card.Title>
-                <div className="d-flex justify-content-between">
-                </div>
-                <div className="d-flex justify-content-between align-items-baseline">
-                    <h5 className='text-center'>${producto.precio}.-</h5>
-                    <LinkContainer to={`/item/${producto.id}`}>
-                        <Button variant="dark"><i className="bi bi-eye"></i></Button>
-                    </LinkContainer>
-                </div>
-            </Card.Body>
-        </Card>
+      <Card className="h-100 rounded-0 shadow-sm">
+        <Card.Img variant="top" className="rounded-0" src={product.image} alt={product.name}/>
+        <Card.Body className="itemCardBody">
+          <LinkContainer to={`/category/${product.category}`}>
+            <Card.Link>
+              <Badge pill bg={badgeColor(product)}>
+                {product.category}
+              </Badge>
+            </Card.Link>
+          </LinkContainer>
+          <Card.Title className="mt-3 text-truncate">{product.name}</Card.Title>
+          <div className="d-flex justify-content-between"></div>
+          <div className="d-flex justify-content-between align-items-baseline">
+            <h5 className="text-center">${product.price}.-</h5>
+            <LinkBtn link={`/item/${product.id}`} text="Ver detalle" />
+          </div>
+        </Card.Body>
+      </Card>
     </Col>
-  )
-}
+  );
+};
 
-export default Item
+export default Item;

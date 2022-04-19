@@ -1,10 +1,15 @@
-import React from 'react'
-import Button from 'react-bootstrap/esm/Button'
+import Button from "react-bootstrap/esm/Button";
 
-const BtnAddToCart = ({handleAction}) => {
+const BtnAddToCart = ({ handleAction }) => {
   return (
-    <Button variant="dark" onClick={handleAction}>Agregar al carrito</Button> 
-  )
-}
+    <Button
+      variant="outline-secondary"
+      className="rounded-0 btn-sm"
+      onClick={handleAction}
+    >
+      Agregar al carrito
+    </Button>
+  );
+};
 
-export default BtnAddToCart
+export default BtnAddToCart;

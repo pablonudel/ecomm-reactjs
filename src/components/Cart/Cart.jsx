@@ -1,138 +1,180 @@
 import { useState } from "react";
+import { useCartContext } from "../../context/CartContext";
+import { Link } from "react-router-dom";
+import { collection, documentId, getDocs, getFirestore, query, where, writeBatch } from "firebase/firestore";
 import Container from "react-bootstrap/esm/Container";
 import Row from "react-bootstrap/esm/Row";
 import Col from "react-bootstrap/esm/Col";
 import Card from "react-bootstrap/esm/Card";
 import Button from "react-bootstrap/esm/Button";
-import Form from "react-bootstrap/esm/Form";
 import Modal from "react-bootstrap/esm/Modal";
-import { Link } from "react-router-dom";
-import { useCartContext } from "../../context/CartContext";
+import LinkBtn from "../LinkBtn/LinkBtn";
 import CartItem from "../CartItem/CartItem";
-import { addDoc, collection, documentId, getDocs, getFirestore, query, where, writeBatch } from 'firebase/firestore'
+import CartForm from "../CartForm/CartForm";
+import PurchaseDetail from "../PurchaseDetail/PurchaseDetail";
+import { getFetch } from "../../firebase/getFetch";
 
 const Cart = () => {
-  const { CartList, vaciarCart, CartTotal, CartCant } = useCartContext();
+  const { CartList, emptyCart, CartTotal, CartQty } = useCartContext();
 
-  const [ClientData, setClientData] = useState({});
-  const [show, setShow] = useState(false);
-  const [IdCompra, setIdCompra] = useState('');
+  const [CustomerData, setCustomerData] = useState({});
+  const [ShowModal, setShowModal] = useState(false);
+  const [ShowAlert, setShowAlert] = useState(false);
+  const [PurchaseId, setPurchaseId] = useState("");
 
   const handleClose = () => {
-    setShow(false)
-    setIdCompra('')
-    vaciarCart()
-  };
-  const handleShow = () => setShow(true);
-
-  const getClientData = (e)=>{
-    e.preventDefault()
-    const name = e.target.name
-    const userValue = e.target.value
-    setClientData({...ClientData, [name]:userValue })
+    setShowModal(false);
+    setPurchaseId("");
+    emptyCart();
   };
 
-  const generarOrden = async () => {
-    let orden = {}
-    orden.cliente = ClientData
-    orden.item = CartList.map(item => ({id: item.id, nombre: item.nombre, cantidad:item.cantidad, precio: item.precio}))
-    orden.fecha = new Date()
-    orden.total = CartTotal
+  const handleShowModal = () => setShowModal(true);
 
-    const db = getFirestore()
-    const queryOrdenes = collection(db, 'ordenes')
-    addDoc(queryOrdenes, orden)
-    .then(resp => setIdCompra(resp.id))
-    .catch(err => console.log(err))
-    .finally(() => handleShow())
+  const getCustomerData = (e) => {
+    const name = e.target.name;
+    const userValue = e.target.value;
+    setCustomerData({ ...CustomerData, [name]: userValue.toString() });
+  };
 
-    const queryItems = collection(db, 'productos')
-    const queryActualizarStock = query(
+  const validationErrors = () => {
+    let validationMsgs;
+    const emailPattern =
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+    !CustomerData.name &&
+      (validationMsgs = { ...validationMsgs, name: "Nombre requerido" });
+
+    !CustomerData.email
+      ? (validationMsgs = { ...validationMsgs, email: "Email requerido" })
+      : !CustomerData.email.match(emailPattern) &&
+        (validationMsgs = { ...validationMsgs, email: "Email invalido" });
+
+    !CustomerData.phone
+      ? (validationMsgs = { ...validationMsgs, phone: "Teléfono requerido" })
+      : CustomerData.phone.length < 8 &&
+        (validationMsgs = {
+          ...validationMsgs,
+          phone: "Teléfono mínimo de 8 digitos",
+        });
+
+    return validationMsgs;
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    !validationErrors() ? generateOrder() : setShowAlert(true);
+  };
+
+  const generateOrder = async () => {
+    setShowAlert(false);
+
+    let order = {};
+    order.customer = CustomerData;
+    order.item = CartList.map((item) => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+    }));
+    order.date = new Date();
+    order.total = CartTotal;
+
+    const dbQuery = collection(getFirestore(), "orders");
+    const setter = (resp) => setPurchaseId(resp.id);
+    const finalFn = () => handleShowModal();
+
+    getFetch("add", dbQuery, setter, order, finalFn);
+
+    const queryItems = collection(getFirestore(), "products");
+    const queryUpdateStock = query(
       queryItems,
-      where( documentId(), 'in', CartList.map(i => i.id))
-    )
+      where(
+        documentId(),
+        "in",
+        CartList.map((i) => i.id)
+      )
+    );
 
-    const batch = writeBatch(db)
+    const batch = writeBatch(getFirestore());
 
-    await getDocs(queryActualizarStock)
-    .then(resp => resp.docs.forEach(doc => batch.update(doc.ref, {
-      stock:doc.data().stock - CartList.find(item => item.id === doc.id).cantidad
-    })))
-    .catch(err => console.log(err))
-    .finally(() => console.log('se actualizó stock'))
-    batch.commit()
+    await getDocs(queryUpdateStock)
+      .then((resp) =>
+        resp.docs.forEach((doc) =>
+          batch.update(doc.ref, {
+            stock:
+              doc.data().stock -
+              CartList.find((item) => item.id === doc.id).quantity,
+          })
+        )
+      )
+      .catch((err) => console.log(err));
+
+    batch.commit();
   };
 
   return (
     <>
-    <Container className="mt-5">
-      <Card className="rounded-0 p-5">
-        <Card.Title className="text-center mb-5">Carrito</Card.Title>
+      <Container className="mt-5">
+        <div className="d-flex justify-content-between align-items-center mb-5 pt-3">
+          <h1>Carrito</h1>
+
+          <Button
+            className="rounded-0"
+            variant="danger"
+            size="sm"
+            onClick={emptyCart}
+            hidden={CartList.length === 0}
+          >
+            Vaciar Carrito
+          </Button>
+        </div>
         {CartList.length === 0 ? (
-          <div className="text-center">
-            <p>No hay productos en el carrito</p>
-            <Link to="/">
-              <Button variant="dark">Conoce nuestro productos</Button>
-            </Link>
-          </div>
+          <Card className="rounded-0 p-5 bg-light shadow-sm">
+            <div className="text-center">
+              <p className="mb-5">No hay productos en tu carrito</p>
+              <LinkBtn link="/" text="Ver nuestro catálogo" />
+            </div>
+          </Card>
         ) : (
-          <Row>
-            <Col md={8}>
-              {CartList.map((producto) => (
-                <CartItem key={producto.id} producto={producto} />
+          <Row className="mb-5">
+            <Col md={12} lg={7} xl={8} className="mb-3">
+              {CartList.map((product) => (
+                <CartItem key={product.id} product={product} />
               ))}
             </Col>
-            <Col md={4}>
-              <Card bg="light" className="shadow-sm p-5 position-relative rounded-0">
-                <Card.Title className="mb-4">Detalle de la compra</Card.Title>
-                <Card.Text className="mb-0">
-                    {CartCant} Productos
-                    <br />
-                    <strong className="h4">Total: ${CartTotal}.-</strong>
-                </Card.Text>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  className="position-absolute top-0 end-0 mt-2 me-2"
-                  onClick={vaciarCart}
-                  hidden={CartList.length === 0}
-                >
-                  Vaciar Carrito
-                </Button>
-              </Card>
-              <Card bg="dark" className="shadow-sm text-white p-5 rounded-0">
-                <Card.Text className="text-center">Complete sus datos a continuación para finalizar su compra.</Card.Text>
-                  <Form.Control className="mb-3" type="text" placeholder="Nombre Completo" name="nombre" onChange={getClientData}/>
-                  <Form.Control className="mb-3" type="email" placeholder="Enter email"  name="email" onChange={getClientData}/>
-                  <Form.Control className="mb-3" type="text" placeholder="Teléfono" name="telefono" onChange={getClientData}/>
-                  <Button variant="success" type="submit" onClick={generarOrden}>
-                    Finalizar compra
-                  </Button>
-                
-              </Card>
+            <Col md={12} lg={5} xl={4}>
+              <PurchaseDetail />
+              <CartForm
+                submit={submit}
+                getCustomerData={getCustomerData}
+                validationErrors={validationErrors()}
+                ShowAlert={ShowAlert}
+              />
             </Col>
           </Row>
         )}
-      </Card>
-    </Container>
+      </Container>
 
-    <Modal show={show} onHide={()=>handleClose()}>
-      <Modal.Body closeButton>
-        <div className="p-5 text-center">
-          <p>¡Gracias por su compra, {ClientData.nombre}!</p>
-          <h6>Detalle de la compra</h6>
-          <p>Orden ID: {IdCompra}<br/>
-          Cantidad de productos: {CartCant}<br/>
-          Precio total: ${CartTotal}.-
-          </p>
-          <Link to='/'>
-            <Button variant="secondary" onClick={()=>handleClose()}>
-              Volver a la tienda
-            </Button>
-          </Link>
-        </div>
-      </Modal.Body>
-    </Modal>
+      <Modal show={ShowModal} backdrop="static">
+        <Modal.Body>
+          <div className="p-5 text-center">
+            <p>¡Gracias por su compra, {CustomerData.name}!</p>
+            <h6>Detalle de la compra</h6>
+            <p>
+              Orden ID: {PurchaseId}
+              <br />
+              Cantidad de productos: {CartQty}
+              <br />
+              Precio total: ${CartTotal}.-
+            </p>
+            <Link to="/">
+              <Button variant="secondary" onClick={() => handleClose()}>
+                Ver nuestro catálogo
+              </Button>
+            </Link>
+          </div>
+        </Modal.Body>
+      </Modal>
     </>
   );
 };
